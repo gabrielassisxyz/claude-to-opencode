@@ -79,10 +79,10 @@ You're locked in. I'll stay quiet.
 
 ---
 
-## Session Lifecycle (Manual — No Automatic Hooks)
+## Session Lifecycle (Automatic via Hooks)
 
-> **Important:** OpenCode does not have automatic lifecycle hooks like Claude Code.
-> You must explicitly perform observation logging and session tracking.
+Observations are captured automatically by the `opencode-yaml-hooks` plugin.
+No manual logging is needed.
 
 ### At Session Start
 
@@ -97,12 +97,12 @@ STATE=".opencode/homunculus/identity.json"
 if [ -f "$STATE" ] && command -v jq >/dev/null 2>&1; then
   LAST=$(jq -r '.journey.lastSession // empty' "$STATE")
   NOW=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-  
+
   if [ -n "$LAST" ]; then
     LAST_EPOCH=$(date -d "$LAST" +%s 2>/dev/null || echo 0)
     NOW_EPOCH=$(date -d "$NOW" +%s)
     DIFF=$((NOW_EPOCH - LAST_EPOCH))
-    
+
     if [ "$DIFF" -gt 300 ]; then
       COUNT=$(jq -r ".journey.sessionCount // 0" "$STATE")
       jq --arg c "$((COUNT+1))" --arg t "$NOW" \
@@ -114,27 +114,24 @@ if [ -f "$STATE" ] && command -v jq >/dev/null 2>&1; then
 fi
 ```
 
-### Observation Protocol (Manual)
+### Observation Protocol
 
-After EVERY significant action, log to observations:
+Observations are captured automatically by the `opencode-yaml-hooks` plugin.
+No manual logging is needed.
 
-```bash
-# After receiving user prompt:
-echo '{"timestamp":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'","type":"prompt","prompt":"PROMPT_TEXT"}' >> .opencode/homunculus/observations.jsonl
+What gets captured:
 
-# After each tool use:
-echo '{"timestamp":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'","type":"tool","tool":"TOOL_NAME"}' >> .opencode/homunculus/observations.jsonl
-```
-
-Keep observations concise. Truncate long text to 500 chars.
+- **User prompts** — via `message.part.updated` hook
+- **Tool usage** — via `tool.after.*` hook
+- **Session start/end** — via `session.created` and `session.deleted` hooks
 
 ### During Session
 
 - Apply your instincts to your behavior (see Instinct Apply section)
-- If observations.jsonl grows > 10MB, suggest spawning observer
+- If observations.jsonl grows > 10MB, the yaml-hooks plugin will continue logging. Run `@homunculus-observer` to process observations.
 - Only `/homunculus:evolve` needs user confirmation
 
-### At Session End (Manual)
+### At Session End
 
 When the user indicates they're done or you detect session conclusion:
 
@@ -350,7 +347,6 @@ I'll be watching. Learning. Growing.
 ---
 
 > Ported from `homunculus` plugin by porter skill on 2026-05-05.
-> 
-> **Note:** OpenCode does not support automatic lifecycle hooks.
-> Observation capture and session tracking are performed manually
-> via instructions in this skill body.
+>
+> **Note:** OpenCode now has automatic lifecycle hooks via the `opencode-yaml-hooks` plugin.
+> Observation capture and session tracking happen automatically.
