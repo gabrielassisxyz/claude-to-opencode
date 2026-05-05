@@ -62,6 +62,13 @@
   {"properties":{"part":{"type":"text","text":"say hello","messageID":"msg_...","sessionID":"ses_..."}}}
   ```
 
+## 2026-05-05 (Update)
+
+### Task: Rename plugin references from fork to `@gabrielassisxyz/opencode-hooks`
+- **Status**: completed
+- **Details**: Updated all project files to reference the published npm package `@gabrielassisxyz/opencode-hooks` instead of the git fork. Added auto-detection instructions in SKILL.md. Documented global/local/specific hook installation paths. Updated AGENTS.md, README.md, hooks-mapping.md, commands/porter.md, and homunculus-port files.
+- **Files changed**: `skills/porter/SKILL.md`, `skills/porter/references/hooks-mapping.md`, `commands/porter.md`, `README.md`, `AGENTS.md`, `examples/homunculus-port/SKILL.md`, `examples/homunculus-port/PORT-TEST.md`
+
 ### Previously Completed
 - Created skill directory structure (`skills/porter/`)
 - Wrote `SKILL.md` with complete workflow, mapping rules, and examples

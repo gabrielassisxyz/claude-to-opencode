@@ -17,15 +17,26 @@ preserving 100% of semantic content and enhancing where appropriate.
 
 ## Dependency
 
-This skill requires the **forked** `opencode-yaml-hooks` plugin for full functionality,
-especially for porting skills that use Claude Code lifecycle hooks (UserPromptSubmit,
-PostToolUse, Stop). The upstream plugin does not support message events.
+This skill requires the `@gabrielassisxyz/opencode-hooks` plugin for full functionality,
+especially for porting skills that use Claude Code lifecycle hooks (`UserPromptSubmit`,
+`PostToolUse`, `Stop`).
 
-**Fork:** https://github.com/gabrielassisxyz/OpenCode-Hooks
+**Package:** `@gabrielassisxyz/opencode-hooks`
+**Repository:** https://github.com/gabrielassisxyz/opencode-hooks
 
 Install:
 ```bash
-bun add opencode-yaml-hooks@git+https://github.com/gabrielassisxyz/OpenCode-Hooks.git
+bun add @gabrielassisxyz/opencode-hooks
+```
+
+Add to `~/.config/opencode/opencode.json` (global) or `./.opencode/opencode.json` (local project):
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "plugin": [
+    "@gabrielassisxyz/opencode-hooks"
+  ]
+}
 ```
 
 ## Principles
@@ -177,22 +188,38 @@ Example transform:
 
 Claude Code uses lifecycle hooks (`UserPromptSubmit`, `PostToolUse`, `Stop`) defined
 in `.claude/settings.json` or plugin manifests. OpenCode **does not have** these hooks
-natively, but the **forked** `opencode-yaml-hooks` plugin adds support for them.
+natively, but the `@gabrielassisxyz/opencode-hooks` plugin adds support for them.
 
 **Strategy:** Generate a `hooks.yaml` file that the user can install to enable automatic
 observation capture, instead of embedding manual logging instructions in the skill body.
 
-| Claude Code Hook | OpenCode Equivalent (via fork) | Fallback (no fork) |
-|------------------|-------------------------------|-------------------|
+| Claude Code Hook | OpenCode Equivalent (via plugin) | Fallback (no plugin) |
+|------------------|--------------------------------|---------------------|
 | `UserPromptSubmit` | `message.part.updated` event in `hooks.yaml` | Manual logging instructions in skill body |
 | `PostToolUse` | `tool.after.*` event in `hooks.yaml` | Manual logging instructions in skill body |
 | `Stop` | `session.deleted` event in `hooks.yaml` | Inverted logic (detect new session at start) |
 | `PreToolUse` (security) | `permissions` block (pattern-based) | Same — always available |
 
-**When porting a skill with hooks:**
-1. Ask the user if they have the forked `opencode-yaml-hooks` plugin installed
-2. If YES → generate `hooks.yaml` with corresponding events
-3. If NO → add manual logging instructions to the skill body (fallback)
+**Auto-detect plugin:**
+Before asking the user, read **both** `~/.config/opencode/opencode.json` and `./.opencode/opencode.json` and check if the `plugin` array contains `"@gabrielassisxyz/opencode-hooks"` in either file.
+
+- If present in **global** config → skip the question and generate `hooks.yaml` directly.
+- If present in **local** config → skip the question and generate `hooks.yaml` for `./.opencode/hooks/hooks.yaml`.
+- If **NOT present in either**, ask the user:
+  > "The source skill uses Claude Code lifecycle hooks. The `@gabrielassisxyz/opencode-hooks`
+  > plugin enables automatic hook support in OpenCode.
+  >
+  > Choose one:
+  > 1. **Install globally** (`~/.config/opencode/`) — recommended if you want hooks on all projects
+  > 2. **Install locally** (`./.opencode/`) — recommended for project-specific hooks
+  > 3. **Use fallback** — embed manual logging instructions in the skill body instead"
+
+**Hook installation paths:**
+- **Global:** `~/.config/opencode/hooks/hooks.yaml`
+- **Local (project):** `./.opencode/hooks/hooks.yaml`
+- **Specific directory:** `{dir_path}/.opencode/hooks/hooks.yaml`
+
+Use the same scope the user chose for skill installation.
 
 **Example hooks.yaml for a skill using UserPromptSubmit + PostToolUse:**
 ```yaml
@@ -230,8 +257,14 @@ Write files to the target directory.
 {output_dir}/
 ├── skills/{name}/SKILL.md
 ├── agent/{name}.md        (if source was an agent)
-└── commands/{name}.md     (companion command)
+├── commands/{name}.md     (companion command)
+└── hooks/hooks.yaml       (if skill uses hooks and plugin is available)
 ```
+
+**Hook installation scope (ask user or infer):**
+- Global: `~/.config/opencode/hooks/hooks.yaml`
+- Local (project): `./.opencode/hooks/hooks.yaml`
+- Specific directory: `{dir_path}/.opencode/hooks/hooks.yaml`
 
 ### Step 4: Generate Report
 
@@ -264,7 +297,7 @@ STOP and ask the user when:
 4. **MCP enhancement**: You think an agent would benefit from MCP tools
 5. **Complex sub-agent topology**: Circular or deeply nested references
 6. **Empty description**: Source has no description and body is too generic to synthesize one
-7. **Hooks present**: The source uses Claude Code hooks and user needs to decide: install forked plugin or use fallback
+7. **Hooks present**: The source uses Claude Code hooks and the `@gabrielassisxyz/opencode-hooks` plugin is not detected in either `~/.config/opencode/opencode.json` or `./.opencode/opencode.json`. Ask the user to install it or use the fallback.
 
 For ALL other cases, proceed autonomously and report decisions in the final report.
 
@@ -349,10 +382,10 @@ Review the current branch's changes...
 }
 ```
 
-**Output** (if user has forked plugin):
+**Output** (if user has plugin):
 - Generate `hooks.yaml` with `message.part.updated`, `tool.after.*`, `session.deleted` events
 - Point scripts to adapted versions using `OPENCODE_PROJECT_DIR`
 
-**Output** (if user does NOT have forked plugin):
+**Output** (if user does NOT have plugin):
 - Add manual observation instructions to skill body
 - Invert `Stop` hook to session-start detection logic

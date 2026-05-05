@@ -1,10 +1,14 @@
-# Task Plan — OpenCode-Hooks Fork: UserPromptSubmit Support
+# Task Plan — opencode-hooks: UserPromptSubmit Support
+
+> **Completed.** This plan resulted in the `@gabrielassisxyz/opencode-hooks` npm package.
+> The original fork approach evolved into a published package that extends `opencode-yaml-hooks`.
+> See: https://github.com/gabrielassisxyz/opencode-hooks
 
 ## Context
 
-The `opencode-yaml-hooks` plugin (OpenCode-Hooks) supports session and tool lifecycle events but **deliberately excludes message/prompt events**. The goal of this fork is to add `message.updated` (or equivalent) event support to enable automatic capture of user prompts — critical for the homunculus plugin's observation system.
+The `opencode-yaml-hooks` plugin (opencode-hooks) supports session and tool lifecycle events but **deliberately excludes message/prompt events**. The goal was to add `message.updated` (or equivalent) event support to enable automatic capture of user prompts — critical for the homunculus plugin's observation system.
 
-**Decision:** We will fork `OpenCode-Hooks` and add native support for message events. This keeps everything in yaml-hooks (consistent, single technology, no workarounds).
+**Decision:** Extend `opencode-hooks` with message event support and publish as `@gabrielassisxyz/opencode-hooks`.
 
 ---
 
@@ -115,7 +119,7 @@ This approach:
 #### 2.8 Update comparison doc
 **File:** `docs/comparison-with-claude-code-hooks.md`
 - Add `UserPromptSubmit` → `message.part.updated` mapping
-- Note that this requires the fork (not upstream)
+- Note that this requires `@gabrielassisxyz/opencode-hooks` (not upstream `opencode-yaml-hooks`)
 - Explain the correlation mechanism (runtime state)
 
 **Estimated Time:** 2-3 hours
@@ -124,13 +128,13 @@ This approach:
 
 ## Phase 3: Integration with Homunculus
 
-**Goal:** Update the homunculus port to use the forked yaml-hooks plugin for fully automatic observation capture.
+**Goal:** Update the homunculus port to use the `@gabrielassisxyz/opencode-hooks` plugin for fully automatic observation capture.
 
 ### Steps
 
-- [ ] Build forked plugin: `bun run build`
-- [ ] Install forked plugin in OpenCode (local path or npm link)
-- [ ] Create `hooks.yaml` for homunculus:
+- [x] Build plugin: `bun run build`
+- [x] Install plugin in OpenCode (`bun add @gabrielassisxyz/opencode-hooks`)
+- [x] Create `hooks.yaml` for homunculus:
   ```yaml
   hooks:
     - id: homunculus-capture-prompt
@@ -156,16 +160,16 @@ This approach:
       actions:
         - bash: ./scripts/on_stop.sh
   ```
-- [ ] Adapt `observe.sh` to new payload format:
+- [x] Adapt `observe.sh` to new payload format:
   - `prompt` mode: read JSON from stdin, extract `.text`, log to observations
   - `tool` mode: read JSON from stdin, extract `.tool_name` and `.tool_args`, log to observations
-- [ ] Adapt `on_start.sh` and `on_stop.sh` to use `OPENCODE_SESSION_ID` env var
-- [ ] Update `skills/homunculus/SKILL.md`:
+- [x] Adapt `on_start.sh` and `on_stop.sh` to use `OPENCODE_SESSION_ID` env var
+- [x] Update `skills/homunculus/SKILL.md`:
   - Remove manual observation instructions
-  - Add note that observations are captured automatically by yaml-hooks
+  - Add note that observations are captured automatically by `@gabrielassisxyz/opencode-hooks`
   - Keep instructions for invoking observer and evolution
-- [ ] Update `PORT-TEST.md` with new test flow
-- [ ] Validate end-to-end:
+- [x] Update `PORT-TEST.md` with new test flow
+- [x] Validate end-to-end:
   1. Start OpenCode
   2. Type a prompt
   3. Verify `.opencode/homunculus/observations.jsonl` contains the prompt
@@ -195,16 +199,6 @@ This approach:
 ### Wrapper Script (PTY)
 - Wrap OpenCode TUI in a pseudo-terminal and parse output
 - **Rejected:** Fragile; breaks with UI changes; cannot extract structured data reliably
-
----
-
-## Repository & Tooling
-
-- **Fork location:** `/home/gabriel/repositories/claude-to-opencode/reference-repos/OpenCode-Hooks/`
-- **Upstream:** https://github.com/KristjanPikhof/OpenCode-Hooks
-- **Build target:** Bun (`--target bun`)
-- **Test runner:** Vitest
-- **OpenCode version:** 1.14.39
 
 ---
 

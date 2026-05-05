@@ -39,13 +39,19 @@ This command invokes the `porter` skill. For full documentation, see
 
 ## Hooks Support
 
-If the source skill uses Claude Code lifecycle hooks (UserPromptSubmit, PostToolUse,
-Stop), the porter can generate a `hooks.yaml` configuration using the forked
-`opencode-yaml-hooks` plugin.
+If the source skill uses Claude Code lifecycle hooks (`UserPromptSubmit`, `PostToolUse`,
+`Stop`), the porter can generate a `hooks.yaml` configuration using the `@gabrielassisxyz/opencode-hooks`
+plugin.
 
-**Fork:** https://github.com/gabrielassisxyz/OpenCode-Hooks
+**Package:** `@gabrielassisxyz/opencode-hooks`
+**Repository:** https://github.com/gabrielassisxyz/opencode-hooks
 
-Without the fork, the porter falls back to embedding manual logging instructions
+Install:
+```bash
+bun add @gabrielassisxyz/opencode-hooks
+```
+
+Without the plugin, the porter falls back to embedding manual logging instructions
 in the skill body.
 
 ## Decision Points
@@ -56,6 +62,6 @@ The porter will pause and ask when:
 - Target file already exists
 - MCP enhancement is suggested
 - Complex sub-agent topology is detected
-- Hooks are present and user must choose: install forked plugin or use fallback
+- Hooks are present and the `@gabrielassisxyz/opencode-hooks` plugin is not detected — user must choose: install the plugin or use the fallback
 
 For all other cases, it proceeds autonomously.

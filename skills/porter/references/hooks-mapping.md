@@ -3,24 +3,25 @@
 ## Overview
 
 Claude Code has lifecycle hooks (`UserPromptSubmit`, `PostToolUse`, `Stop`) that fire
-automatically. OpenCode does **not** have these hooks natively, but the **forked**
-`opencode-yaml-hooks` plugin adds support for equivalent events.
+automatically. OpenCode does **not** have these hooks natively, but the
+`@gabrielassisxyz/opencode-hooks` plugin adds support for equivalent events.
 
-**Fork:** https://github.com/gabrielassisxyz/OpenCode-Hooks
+**Package:** `@gabrielassisxyz/opencode-hooks`
+**Repository:** https://github.com/gabrielassisxyz/opencode-hooks
 
 ## Mapping Table
 
-| Claude Code Hook | OpenCode Equivalent (forked plugin) | Fallback (no plugin) |
-|------------------|-------------------------------------|---------------------|
+| Claude Code Hook | OpenCode Equivalent (via plugin) | Fallback (no plugin) |
+|------------------|----------------------------------|---------------------|
 | `UserPromptSubmit` | `message.part.updated` event | Manual logging in skill body |
 | `PostToolUse` | `tool.after.*` event | Manual logging in skill body |
 | `Stop` | `session.deleted` / `session.idle` | Inverted session-start detection |
 | `PreToolUse` (security) | `permissions` block | `permissions` block |
 
-## How the Fork Works
+## How the Plugin Works
 
-The forked `opencode-yaml-hooks` plugin adds `message.updated` and `message.part.updated`
-events that are not available in the upstream plugin.
+The `@gabrielassisxyz/opencode-hooks` plugin adds `message.updated` and `message.part.updated`
+events.
 
 ### Correlation Mechanism
 
@@ -72,9 +73,9 @@ hooks:
       - bash: ./scripts/on_stop.sh
 ```
 
-## Fallback (No Forked Plugin)
+## Fallback (No Plugin)
 
-If the user cannot or does not want to install the forked plugin, the porter falls
+If the user cannot or does not want to install the `@gabrielassisxyz/opencode-hooks` plugin, the porter falls
 back to embedding manual logging instructions in the skill body:
 
 ```markdown
@@ -94,20 +95,28 @@ echo '{"timestamp":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'","type":"tool","tool":"TOOL
 ## Installation
 
 ```bash
-# Install the forked plugin
-bun add opencode-yaml-hooks@git+https://github.com/gabrielassisxyz/OpenCode-Hooks.git
+# Install the plugin
+bun add @gabrielassisxyz/opencode-hooks
+```
 
-# Add to ~/.config/opencode/opencode.json
+Add to `~/.config/opencode/opencode.json` (global) or `./.opencode/opencode.json` (local):
+```json
 {
+  "$schema": "https://opencode.ai/config.json",
   "plugin": [
-    "opencode-yaml-hooks@git+https://github.com/gabrielassisxyz/OpenCode-Hooks.git"
+    "@gabrielassisxyz/opencode-hooks"
   ]
 }
 ```
 
+## Hook File Locations
+
+- **Global:** `~/.config/opencode/hooks/hooks.yaml`
+- **Local (project):** `./.opencode/hooks/hooks.yaml`
+- **Specific directory:** `{dir_path}/.opencode/hooks/hooks.yaml`
+
 ## Notes
 
-- The fork is a deliberate scope extension of the upstream plugin
-- Upstream deliberately excludes message events (documented as "explicit non-goals")
-- The fork could potentially be upstreamed via PR
-- Without the fork, manual logging is the only option
+- The `@gabrielassisxyz/opencode-hooks` plugin extends the original `opencode-yaml-hooks` with message events
+- The upstream `opencode-yaml-hooks` deliberately excludes message events (documented as "explicit non-goals")
+- Without the `@gabrielassisxyz/opencode-hooks` plugin, manual logging is the only option

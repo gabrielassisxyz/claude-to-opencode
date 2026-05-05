@@ -63,13 +63,23 @@ Given a directory of Claude Code artifacts (`.claude/skills/`, `.claude/agents/`
 
 ## Key Dependency
 
-This project uses a **fork** of `opencode-yaml-hooks` that adds `message.updated` and `message.part.updated` events for automatic prompt capture:
+This project uses the `@gabrielassisxyz/opencode-hooks` plugin that adds `message.updated` and `message.part.updated` events for automatic prompt capture:
 
 ```bash
-bun add opencode-yaml-hooks@git+https://github.com/gabrielassisxyz/OpenCode-Hooks.git
+bun add @gabrielassisxyz/opencode-hooks
 ```
 
-See `docs/opencode-hooks-fork-plan.md` for details.
+Add to `~/.config/opencode/opencode.json` (global) or `./.opencode/opencode.json` (local):
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "plugin": [
+    "@gabrielassisxyz/opencode-hooks"
+  ]
+}
+```
+
+See `docs/opencode-hooks-fork-plan.md` for historical implementation details.
 
 ## Usage
 

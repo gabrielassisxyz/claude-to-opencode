@@ -26,9 +26,10 @@ This porter automates the translation between these formats.
 
 ### Key Dependency
 
-This project depends on a **fork** of `opencode-yaml-hooks` that adds `message.updated` and `message.part.updated` events:
-- **Fork:** https://github.com/gabrielassisxyz/OpenCode-Hooks
-- **Why:** The upstream plugin deliberately excludes message events. Our fork adds them to support automatic prompt capture (critical for plugins like homunculus).
+This project uses the `@gabrielassisxyz/opencode-hooks` plugin that adds `message.updated` and `message.part.updated` events:
+- **Package:** `@gabrielassisxyz/opencode-hooks`
+- **Repository:** https://github.com/gabrielassisxyz/opencode-hooks
+- **Why:** The upstream `opencode-yaml-hooks` deliberately excludes message events. The `@gabrielassisxyz/opencode-hooks` package adds them to support automatic prompt capture (critical for plugins like homunculus).
 
 ---
 
@@ -91,13 +92,14 @@ claude-to-opencode/
 ### Installation
 
 ```bash
-# 1. Install the forked yaml-hooks plugin (REQUIRED for full functionality)
-bun add opencode-yaml-hooks@git+https://github.com/gabrielassisxyz/OpenCode-Hooks.git
+# 1. Install the opencode-hooks plugin (REQUIRED for full functionality)
+bun add @gabrielassisxyz/opencode-hooks
 
-# 2. Add to ~/.config/opencode/opencode.json
+# 2. Add to ~/.config/opencode/opencode.json (global) or ./.opencode/opencode.json (local)
 {
+  "$schema": "https://opencode.ai/config.json",
   "plugin": [
-    "opencode-yaml-hooks@git+https://github.com/gabrielassisxyz/OpenCode-Hooks.git"
+    "@gabrielassisxyz/opencode-hooks"
   ]
 }
 
@@ -133,7 +135,7 @@ pkill -f opencode && opencode
 | `Agent` tool listed | `mode: primary` |
 | CSV tool list | Boolean flags per tool |
 | `PreToolUse` (security) | `permissions` block (pattern-based) |
-| `UserPromptSubmit` | `message.part.updated` (via forked yaml-hooks) |
+| `UserPromptSubmit` | `message.part.updated` (via `@gabrielassisxyz/opencode-hooks`) |
 | `PostToolUse` | `tool.after.*` |
 | `Stop` | `session.deleted` / `session.idle` |
 
@@ -177,11 +179,11 @@ cp examples/homunculus-port/SKILL.md ~/.config/opencode/skills/homunculus/
 /homunculus:status    # Check session count, instincts, evolution
 ```
 
-### 4. Test the Forked Plugin
+### 4. Test the Plugin
 
 ```bash
 # Verify hooks.yaml is loaded
-cat ~/.config/opencode/hook/hooks.yaml
+cat ~/.config/opencode/hooks/hooks.yaml
 
 # Start OpenCode, type a prompt, verify observations are logged
 cat .opencode/homunculus/observations.jsonl
@@ -205,20 +207,22 @@ cat .opencode/homunculus/observations.jsonl
 2. Add the new template block
 3. Update `skills/porter/SKILL.md` section 3.6 (Generate Permissions)
 
-### Modifying the Forked Plugin
+### Modifying the Plugin
 
-The fork lives at `~/repositories/OpenCode-Hooks-fork/` (or wherever you moved it).
+The `@gabrielassisxyz/opencode-hooks` package is published on npm. To contribute:
 
 ```bash
-cd ~/repositories/OpenCode-Hooks-fork
+# Clone the repository
+git clone https://github.com/gabrielassisxyz/opencode-hooks.git
+cd opencode-hooks
 # Make changes
 bun run build
 bun test
-# Push to your fork
+# Submit a PR
 git push origin main
 ```
 
-Then update `~/.config/opencode/opencode.json` to point to your fork.
+Then update `~/.config/opencode/opencode.json` to use your local version during development.
 
 ### Adding a New Example
 
@@ -231,15 +235,15 @@ Then update `~/.config/opencode/opencode.json` to point to your fork.
 
 ## Architecture & Design Decisions
 
-### Why a Fork of yaml-hooks?
+### Why `@gabrielassisxyz/opencode-hooks`?
 
-The upstream `opencode-yaml-hooks` deliberately excludes message events (documented as "explicit non-goals"). To support automatic prompt capture for the homunculus showcase, we needed `message.part.updated`. Rather than a hybrid approach (yaml-hooks + TypeScript plugin), we forked to keep everything in one technology stack.
+The upstream `opencode-yaml-hooks` deliberately excludes message events (documented as "explicit non-goals"). To support automatic prompt capture for the homunculus showcase, we needed `message.part.updated`. The `@gabrielassisxyz/opencode-hooks` package extends `opencode-yaml-hooks` with these events.
 
-**Trade-off:** We now maintain a fork. Mitigation: the fork is small, focused, and could be upstreamed via PR.
+**Trade-off:** We now depend on an extended plugin. Mitigation: the extension is small, focused, and could be upstreamed via PR.
 
 ### Why Manual Instructions for the Original Port?
 
-OpenCode v1.14.x does not have automatic lifecycle hooks. The original homunculus port required the agent to consciously log observations. The forked plugin eliminates this limitation.
+OpenCode v1.14.x does not have automatic lifecycle hooks. The original homunculus port required the agent to consciously log observations. The `@gabrielassisxyz/opencode-hooks` plugin eliminates this limitation.
 
 ### Temperature Heuristics
 
@@ -266,7 +270,7 @@ OpenCode v1.14.x does not have automatic lifecycle hooks. The original homunculu
 
 | Issue | Cause | Fix |
 |-------|-------|-----|
-| `message.part.updated` not firing | Plugin not installed | Verify `opencode.json` has the fork |
+| `message.part.updated` not firing | Plugin not installed | Verify `opencode.json` has `@gabrielassisxyz/opencode-hooks` |
 | Hooks not loading | `hooks.yaml` syntax error | Run through a YAML validator |
 | Validation fails on name | Name has spaces or special chars | Use kebab-case: `my-skill-name` |
 | Tool mapping missing | New tool not in table | Add to `references/tool-mapping.md` |
@@ -277,7 +281,7 @@ OpenCode v1.14.x does not have automatic lifecycle hooks. The original homunculu
 ## Development Workflow
 
 1. **Plan:** Update `docs/internal/task_plan.md`
-2. **Implement:** Make changes in `skills/porter/` or the fork
+2. **Implement:** Make changes in `skills/porter/` or the `@gabrielassisxyz/opencode-hooks` plugin
 3. **Test:** Run `validate-output.sh`, compare against `examples/`
 4. **Document:** Update `README.md`, `AGENTS.md`, or `docs/`
 5. **Log:** Update `docs/internal/progress.md`
@@ -288,7 +292,7 @@ OpenCode v1.14.x does not have automatic lifecycle hooks. The original homunculu
 
 - **Issues:** Open a GitHub issue
 - **PRs:** Welcome! Please include tests for new mappings.
-- **Fork:** The yaml-hooks fork is at https://github.com/gabrielassisxyz/OpenCode-Hooks
+- **Plugin:** https://github.com/gabrielassisxyz/opencode-hooks
 
 ---
 

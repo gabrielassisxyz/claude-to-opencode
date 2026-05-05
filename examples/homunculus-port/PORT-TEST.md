@@ -95,10 +95,10 @@ Do some coding work. The homunculus skill, when invoked, should:
 
 ## How to Test (Automatic Hooks)
 
-### 5. Install yaml-hooks Plugin
+### 5. Install opencode-hooks Plugin
 
 ```bash
-# The forked plugin is already configured in ~/.config/opencode/opencode.json
+# Ensure the plugin is in ~/.config/opencode/opencode.json
 # It will be installed automatically on next OpenCode startup
 ```
 
@@ -122,11 +122,11 @@ cat .opencode/homunculus/observations.jsonl
 
 ---
 
-## Critical Limitations (RESOLVED with yaml-hooks fork)
+## Critical Limitations (RESOLVED with `@gabrielassisxyz/opencode-hooks`)
 
 ### 1. ✅ Automatic Prompt Capture
 
-**RESOLVED:** The forked `opencode-yaml-hooks` plugin listens to `message.part.updated` and automatically captures user prompts.
+**RESOLVED:** The `@gabrielassisxyz/opencode-hooks` plugin listens to `message.part.updated` and automatically captures user prompts.
 
 ### 2. ✅ Automatic Tool Logging
 
@@ -144,7 +144,7 @@ The observer agent (`@homunculus-observer`) still needs to be invoked manually t
 
 ## Comparison: Claude Code vs OpenCode Homunculus
 
-| Feature | Claude Code | OpenCode (with fork) | Status |
+| Feature | Claude Code | OpenCode (with plugin) | Status |
 |---------|-------------|---------------------|--------|
 | Auto prompt capture | ✅ Hook | ✅ `message.part.updated` | **Works** |
 | Auto tool logging | ✅ Hook | ✅ `tool.after.*` | **Works** |
