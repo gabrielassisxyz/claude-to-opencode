@@ -1,8 +1,8 @@
 # OpenCode Target Format Reference
 
-## SKILL.md Format (Power Pack Style)
+## SKILL.md Format
 
-Used for shared skill repositories (e.g., opencode-power-pack).
+Standard OpenCode skill format.
 
 ```markdown
 ---
@@ -27,9 +27,9 @@ license: MIT (ported from {source})
 - `license`: recommended
 - File location: `skills/<name>/SKILL.md`
 
-## Agent Format (Native OpenCode)
+## Agent Format
 
-Used for local `~/.config/opencode/` installation.
+Standard OpenCode agent format for `~/.config/opencode/agent/`.
 
 ```markdown
 ---
@@ -78,7 +78,7 @@ permissions:
 
 ## Command Format (Slash Commands)
 
-Used for slash command definitions.
+Standard OpenCode command format.
 
 ```markdown
 ---

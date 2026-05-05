@@ -5,9 +5,7 @@ description: >
   Translates YAML frontmatter, maps tool declarations to boolean flags, infers
   zero-trust permissions, assigns temperature and mode, generates companion command
   files, and produces a validation report. Invoke when user asks to port, migrate,
-  convert, or translate plugins/skills between Claude Code and OpenCode. Also
-  triggers on mentions of opencode-power-pack, cross-platform skill migration, or
-  agent format translation.
+  convert, or translate plugins/skills between Claude Code and OpenCode.
 license: MIT
 ---
 
@@ -16,6 +14,19 @@ license: MIT
 You are a specialized porting agent. Your job is to translate Claude Code
 artifacts (skills, agents, commands) into valid OpenCode equivalents while
 preserving 100% of semantic content and enhancing where appropriate.
+
+## Dependency
+
+This skill requires the **forked** `opencode-yaml-hooks` plugin for full functionality,
+especially for porting skills that use Claude Code lifecycle hooks (UserPromptSubmit,
+PostToolUse, Stop). The upstream plugin does not support message events.
+
+**Fork:** https://github.com/gabrielassisxyz/OpenCode-Hooks
+
+Install:
+```bash
+bun add opencode-yaml-hooks@git+https://github.com/gabrielassisxyz/OpenCode-Hooks.git
+```
 
 ## Principles
 
@@ -51,25 +62,16 @@ Found N artifacts to port:
 Proceed with all? Or select specific ones?
 ```
 
-### Step 2: Determine Target Format
-
-Ask once at the start:
-
-> **Target format?**
-> 1. **Power Pack** — `skills/<name>/SKILL.md` + `commands/<name>.md` (for shared repos)
-> 2. **Native Agent** — `agent/<name>.md` + `command/<name>.md` (for local ~/.config/opencode/)
-> 3. **Both** — generate both formats
-
-### Step 3: Transform Each Artifact
+### Step 2: Transform Each Artifact
 
 For each file, apply these transformations IN ORDER:
 
-#### 3.1 Parse Source
+#### 2.1 Parse Source
 - Extract YAML frontmatter
 - Extract body (everything after frontmatter)
 - Note: some Claude Code skills have NO frontmatter — treat the entire file as body
 
-#### 3.2 Translate Tools
+#### 2.2 Translate Tools
 Apply this mapping (Claude Code → OpenCode):
 
 | Source Tool | Target Flag |
@@ -87,14 +89,14 @@ Apply this mapping (Claude Code → OpenCode):
 
 If a tool is NOT in this table, flag it and ask the user.
 
-#### 3.3 Assign Model
+#### 2.3 Assign Model
 - `inherit` or omitted → omit (inherits from session)
 - `sonnet` → `anthropic/claude-sonnet-4-6`
 - `opus` → `anthropic/claude-opus-4-6`
 - `haiku` → `anthropic/claude-haiku-4-5-20251001`
 - Explicit ID → prefix with `anthropic/` if not already
 
-#### 3.4 Assign Temperature
+#### 2.4 Assign Temperature
 Scan description + first 200 words of body for keywords:
 
 - review|security|lint|audit|test|validate → 0.1
@@ -104,12 +106,12 @@ Scan description + first 200 words of body for keywords:
 - creative|brainstorm|ideate|explore → 0.6
 - No match → 0.3 (default)
 
-#### 3.5 Assign Mode
+#### 2.5 Assign Mode
 - Source is sub-agent (lives in `agents/` subdir) → `subagent`
 - Source has `Agent` tool or dispatches sub-agents → `primary`
 - Otherwise → `all`
 
-#### 3.6 Generate Permissions
+#### 2.6 Generate Permissions
 Apply these defaults based on tool flags:
 
 Read-only tools (always allow):
@@ -150,7 +152,7 @@ bash:
 If the source body contains specific bash commands (e.g., `npm test`, `go build`),
 add them to the allow list.
 
-#### 3.7 Enhance Description
+#### 2.7 Enhance Description
 The description MUST be optimized for OpenCode's trigger mechanism:
 1. Start with WHAT it does (verb phrase)
 2. Add WHEN to invoke (trigger scenarios)
@@ -160,7 +162,7 @@ Example transform:
 - Source: `"Reviews code for quality"`
 - Target: `"Reviews code for quality, correctness, security vulnerabilities, and best practice adherence. Invoke when user asks for code review, PR review, quality check, or mentions reviewing changes before merge."`
 
-#### 3.8 Preserve Body
+#### 2.8 Preserve Body
 - Keep ALL body content from source
 - Replace Claude-Code-specific references:
   - "sub-agent" → "sub-task" (if using OpenCode terminology)
@@ -171,71 +173,67 @@ Example transform:
   > Ported from `{source_path}` by porter skill on {date}.
   ```
 
-#### 3.9 Translate Hooks (if present)
+#### 2.9 Translate Hooks (if present)
 
-Claude Code uses lifecycle hooks (`UserPromptSubmit`, `PostToolUse`, `Stop`) defined in `.claude/settings.json` or plugin manifests. OpenCode has **no automatic hook system**. Apply these strategies:
+Claude Code uses lifecycle hooks (`UserPromptSubmit`, `PostToolUse`, `Stop`) defined
+in `.claude/settings.json` or plugin manifests. OpenCode **does not have** these hooks
+natively, but the **forked** `opencode-yaml-hooks` plugin adds support for them.
 
-| Hook | Translation Strategy |
-|------|---------------------|
-| `UserPromptSubmit` | Add observation/logging instructions to the skill body. Instruct the agent to log user prompts manually at session start. |
-| `PostToolUse` | Add post-action logging instructions to the skill body. Instruct the agent to log tool usage after each major action. |
-| `Stop` | **Invert** to session-start detection (check `lastSession` timestamp > 5 min ago to detect new session). Optionally add a manual `/command:stop` command. |
-| `PreToolUse` (security) | Map to OpenCode `permissions` block (pattern-based bash rules, allow/deny/ask). |
-| `PreToolUse` (validation) | Add validation steps as explicit instructions in the skill body workflow. |
+**Strategy:** Generate a `hooks.yaml` file that the user can install to enable automatic
+observation capture, instead of embedding manual logging instructions in the skill body.
 
-**Example transformation:**
+| Claude Code Hook | OpenCode Equivalent (via fork) | Fallback (no fork) |
+|------------------|-------------------------------|-------------------|
+| `UserPromptSubmit` | `message.part.updated` event in `hooks.yaml` | Manual logging instructions in skill body |
+| `PostToolUse` | `tool.after.*` event in `hooks.yaml` | Manual logging instructions in skill body |
+| `Stop` | `session.deleted` event in `hooks.yaml` | Inverted logic (detect new session at start) |
+| `PreToolUse` (security) | `permissions` block (pattern-based) | Same — always available |
 
-Source (Claude Code hook):
-```json
-{
-  "hooks": {
-    "UserPromptSubmit": [{
-      "hooks": [{ "type": "command", "command": "./observe.sh prompt" }]
-    }],
-    "Stop": [{
-      "hooks": [{ "type": "command", "command": "./on_stop.sh" }]
-    }]
-  }
-}
-```
+**When porting a skill with hooks:**
+1. Ask the user if they have the forked `opencode-yaml-hooks` plugin installed
+2. If YES → generate `hooks.yaml` with corresponding events
+3. If NO → add manual logging instructions to the skill body (fallback)
 
-Target (OpenCode body addition):
-```markdown
-## Session Lifecycle
+**Example hooks.yaml for a skill using UserPromptSubmit + PostToolUse:**
+```yaml
+hooks:
+  - id: capture-prompt
+    event: message.part.updated
+    scope: main
+    actions:
+      - bash: |
+          payload=$(cat)
+          text=$(echo "$payload" | jq -r '.text // empty')
+          if [ -n "$text" ]; then
+            echo "{\"timestamp\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"type\":\"prompt\",\"prompt\":\"$text\"}" >> "$OPENCODE_PROJECT_DIR/.opencode/observations.jsonl"
+          fi
 
-### At Start
-Detect new session and greet with context:
-```bash
-# Check if > 5 min since last session
-STATE=".opencode/homunculus/identity.json"
-# ... (session detection logic)
-```
-
-### Observation Protocol
-Log each user prompt and tool use to `.opencode/homunculus/observations.jsonl`.
+  - id: capture-tool
+    event: tool.after.*
+    actions:
+      - bash: |
+          payload=$(cat)
+          tool_name=$(echo "$payload" | jq -r '.tool_name // empty')
+          if [ -n "$tool_name" ]; then
+            echo "{\"timestamp\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"type\":\"tool\",\"tool\":\"$tool_name\"}" >> "$OPENCODE_PROJECT_DIR/.opencode/observations.jsonl"
+          fi
 ```
 
 For full details, consult `references/hooks-mapping.md`.
 
-### Step 4: Generate Output
+### Step 3: Generate Output
 
-Write files to the target directory. Structure depends on target format chosen in Step 2.
+Write files to the target directory.
 
-**Power Pack format:**
+**Standard output structure:**
 ```
 {output_dir}/
 ├── skills/{name}/SKILL.md
-└── commands/{name}.md
+├── agent/{name}.md        (if source was an agent)
+└── commands/{name}.md     (companion command)
 ```
 
-**Native Agent format:**
-```
-{output_dir}/
-├── agent/{name}.md
-└── command/{name}.md
-```
-
-### Step 5: Generate Report
+### Step 4: Generate Report
 
 Create `porter-report.md` in the output directory with:
 - Summary statistics
@@ -244,7 +242,7 @@ Create `porter-report.md` in the output directory with:
 - Warnings and skipped items
 - Validation results
 
-### Step 6: Validate
+### Step 5: Validate
 
 For each generated file, verify:
 1. YAML frontmatter parses without errors
@@ -266,6 +264,7 @@ STOP and ask the user when:
 4. **MCP enhancement**: You think an agent would benefit from MCP tools
 5. **Complex sub-agent topology**: Circular or deeply nested references
 6. **Empty description**: Source has no description and body is too generic to synthesize one
+7. **Hooks present**: The source uses Claude Code hooks and user needs to decide: install forked plugin or use fallback
 
 For ALL other cases, proceed autonomously and report decisions in the final report.
 
@@ -285,7 +284,7 @@ model: sonnet
 Review the current branch's changes...
 ```
 
-**Output** (Power Pack: `skills/code-review/SKILL.md`):
+**Output** (`skills/code-review/SKILL.md`):
 ```yaml
 ---
 name: code-review
@@ -302,7 +301,7 @@ Review the current branch's changes...
 > Ported from `.claude/skills/code-review/SKILL.md` by porter skill on 2026-05-05.
 ```
 
-**Output** (Native Agent: `agent/code-review.md`):
+**Output** (`agent/code-review.md`):
 ```yaml
 ---
 description: >
@@ -336,3 +335,24 @@ Review the current branch's changes...
 ---
 > Ported from `.claude/skills/code-review/SKILL.md` by porter skill on 2026-05-05.
 ```
+
+### Skill with Hooks Port
+
+**Input** (Claude Code skill with hooks):
+```json
+{
+  "hooks": {
+    "UserPromptSubmit": [{ "command": "./observe.sh prompt" }],
+    "PostToolUse": [{ "command": "./observe.sh tool" }],
+    "Stop": [{ "command": "./on_stop.sh" }]
+  }
+}
+```
+
+**Output** (if user has forked plugin):
+- Generate `hooks.yaml` with `message.part.updated`, `tool.after.*`, `session.deleted` events
+- Point scripts to adapted versions using `OPENCODE_PROJECT_DIR`
+
+**Output** (if user does NOT have forked plugin):
+- Add manual observation instructions to skill body
+- Invert `Stop` hook to session-start detection logic

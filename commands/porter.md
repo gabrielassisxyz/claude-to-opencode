@@ -9,22 +9,22 @@ description: >
 
 Port Claude Code artifacts to OpenCode format automatically.
 
+This command invokes the `porter` skill. For full documentation, see
+`skills/porter/SKILL.md`.
+
 ## Usage
 
 ```
-/porter [source_path] [--target-format=powerpack|native|both]
+/porter [source_path]
 ```
 
 - `source_path`: Path to `.claude/skills/`, `.claude/agents/`, `.claude/commands/`, or a specific file. Defaults to current directory.
-- `--target-format`: Output format. Default is `powerpack`.
 
 ## Examples
 
 ```
 /porter                              # Scan CWD for Claude Code artifacts
 /porter ./my-claude-skills           # Port from custom path
-/porter --target-format=native       # Output native agent format
-/porter --target-format=both         # Generate both formats
 ```
 
 ## What It Does
@@ -37,6 +37,17 @@ Port Claude Code artifacts to OpenCode format automatically.
 6. Generates companion command files
 7. Produces a validation report (`porter-report.md`)
 
+## Hooks Support
+
+If the source skill uses Claude Code lifecycle hooks (UserPromptSubmit, PostToolUse,
+Stop), the porter can generate a `hooks.yaml` configuration using the forked
+`opencode-yaml-hooks` plugin.
+
+**Fork:** https://github.com/gabrielassisxyz/OpenCode-Hooks
+
+Without the fork, the porter falls back to embedding manual logging instructions
+in the skill body.
+
 ## Decision Points
 
 The porter will pause and ask when:
@@ -45,5 +56,6 @@ The porter will pause and ask when:
 - Target file already exists
 - MCP enhancement is suggested
 - Complex sub-agent topology is detected
+- Hooks are present and user must choose: install forked plugin or use fallback
 
 For all other cases, it proceeds autonomously.
