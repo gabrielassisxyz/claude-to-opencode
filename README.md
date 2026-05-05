@@ -40,19 +40,36 @@ Given a directory of Claude Code artifacts (`.claude/skills/`, `.claude/agents/`
 │       └── references/
 │           ├── tool-mapping.md               # Canonical tool translation table
 │           ├── permission-templates.md         # Default permission blocks
+│           ├── hooks-mapping.md              # Claude Code hooks → OpenCode strategies
 │           └── opencode-schema.md            # Target format reference
 ├── commands/
 │   └── porter.md                             # Slash command definition
 ├── examples/
 │   ├── input/                                # Sample Claude Code artifacts
 │   ├── output-powerpack/                     # Expected Power Pack output
-│   └── output-native/                        # Expected Native Agent output
-├── porter-report.md                          # Example report
-└── docs/
-    ├── prd-claude-to-opencode-porter.md      # Product Requirements Document
-    ├── spec-porter-skill.md                  # Technical specification
-    └── spec-porter-SKILL-draft.md            # Draft SKILL.md content
+│   ├── output-native/                        # Expected Native Agent output
+│   └── homunculus-port/                      # Full real-world port example
+│       ├── SKILL.md
+│       └── scripts/
+├── docs/
+│   ├── prd-claude-to-opencode-porter.md      # Product Requirements Document
+│   ├── spec-porter-skill.md                  # Technical specification
+│   ├── spec-porter-SKILL-draft.md            # Draft SKILL.md content
+│   ├── opencode-hooks-fork-plan.md           # Fork implementation plan
+│   └── internal/                             # Development logs
+├── README.md                                 # This file
+└── AGENTS.md                                 # Context for AI agents
 ```
+
+## Key Dependency
+
+This project uses a **fork** of `opencode-yaml-hooks` that adds `message.updated` and `message.part.updated` events for automatic prompt capture:
+
+```bash
+bun add opencode-yaml-hooks@git+https://github.com/gabrielassisxyz/OpenCode-Hooks.git
+```
+
+See `docs/opencode-hooks-fork-plan.md` for details.
 
 ## Usage
 
@@ -138,6 +155,10 @@ All generated files are checked for:
 - Description length 1–1024 characters
 - Boolean tool flags
 - Valid permission patterns
+
+## Contributing
+
+See `AGENTS.md` for detailed context on architecture, design decisions, and how to make changes.
 
 ## License
 
