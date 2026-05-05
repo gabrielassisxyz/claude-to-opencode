@@ -93,64 +93,62 @@ Do some coding work. The homunculus skill, when invoked, should:
 
 ---
 
-## Critical Limitations
+## How to Test (Automatic Hooks)
 
-### 1. Manual Invocation Required
+### 5. Install yaml-hooks Plugin
 
-**This is the biggest limitation.**
+```bash
+# The forked plugin is already configured in ~/.config/opencode/opencode.json
+# It will be installed automatically on next OpenCode startup
+```
 
-In Claude Code, hooks fire **automatically**:
-- Every prompt → logged
-- Every tool use → logged
-- Session end → counter updated
+### 6. Verify hooks.yaml
 
-In OpenCode, the homunculus skill must be **explicitly invoked**:
-- User must say something that matches the description trigger
-- OR user must run `/homunculus:status` or similar command
-- OR the skill must be loaded manually
+```bash
+cat ~/.config/opencode/hook/hooks.yaml
+```
 
-**Workaround:** The skill description is optimized to trigger on common phrases like:
-- "my homunculus"
-- "what have you learned"
-- "check in"
-- "session memory"
+### 7. Test Automatic Capture
 
-But it's **not automatic**.
+Start OpenCode and type any prompt. The yaml-hooks plugin will automatically:
+- Log your prompt to `.opencode/homunculus/observations.jsonl`
+- Log tool usage automatically
+- Track session start/end
 
-### 2. No True Session End Detection
+Verify:
+```bash
+cat .opencode/homunculus/observations.jsonl
+```
 
-Claude Code's `Stop` hook fires when the session truly ends.
-OpenCode has no equivalent. We **inverted** the logic:
-- Detect "new session" at start (by checking lastSession > 5 min)
-- Update lastSession when the skill is invoked
+---
 
-This means:
-- ✅ Session counter increments when user returns after 5+ min
-- ❌ Counter doesn't increment if user just keeps working continuously
-- ❌ No way to run cleanup at true session end
+## Critical Limitations (RESOLVED with yaml-hooks fork)
 
-### 3. Observation Logging is Best-Effort
+### 1. ✅ Automatic Prompt Capture
 
-The skill **instructs** the agent to log observations, but:
-- The agent might forget
-- The agent might log inconsistently
-- There's no enforcement mechanism
+**RESOLVED:** The forked `opencode-yaml-hooks` plugin listens to `message.part.updated` and automatically captures user prompts.
 
-In Claude Code, the hook runs **outside** the agent's reasoning. In OpenCode, it's part of the agent's workflow.
+### 2. ✅ Automatic Tool Logging
 
-### 4. Permission Model Differences
+**RESOLVED:** The `tool.after.*` hook automatically logs tool usage.
 
-The observer agent needs broad permissions to read/write instincts. In Claude Code, this was implicit. In OpenCode, we had to explicitly grant bash permissions for specific paths under `.opencode/homunculus/`.
+### 3. ✅ Session Lifecycle
+
+**RESOLVED:** `session.created` and `session.deleted` hooks handle session start/end automatically.
+
+### 4. Manual Observer Invocation (REMAINS)
+
+The observer agent (`@homunculus-observer`) still needs to be invoked manually to process observations into instincts. This is by design — processing observations is compute-intensive and should not run automatically on every session.
 
 ---
 
 ## Comparison: Claude Code vs OpenCode Homunculus
 
-| Feature | Claude Code | OpenCode | Status |
-|---------|-------------|----------|--------|
-| Auto prompt capture | ✅ Hook | ⚠️ Manual instruction | Best-effort |
-| Auto tool logging | ✅ Hook | ⚠️ Manual instruction | Best-effort |
-| Session end detection | ✅ Stop hook | ⚠️ Inverted (start detection) | Partial |
+| Feature | Claude Code | OpenCode (with fork) | Status |
+|---------|-------------|---------------------|--------|
+| Auto prompt capture | ✅ Hook | ✅ `message.part.updated` | **Works** |
+| Auto tool logging | ✅ Hook | ✅ `tool.after.*` | **Works** |
+| Session end detection | ✅ Stop hook | ✅ `session.deleted` | **Works** |
 | Observer spawning | ✅ Auto on session start | ⚠️ Manual or @mention | Requires user action |
 | Instinct application | ✅ Implicit | ✅ Explicit in body | Works |
 | Evolution proposal | ✅ Auto when clustering | ✅ Same logic | Works |
