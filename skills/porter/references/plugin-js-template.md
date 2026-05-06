@@ -65,19 +65,12 @@ export const {Name}Plugin = async ({ client, directory, worktree }) => {
   const commandsDir = path.resolve(__dirname, '../commands');
 
   return {
-    // 1. Register directories in config
+    // 1. Register skill directory in config
     config: async (config) => {
       config.skills = config.skills || {};
       config.skills.paths = config.skills.paths || [];
       if (fs.existsSync(skillsDir) && !config.skills.paths.includes(skillsDir)) {
         config.skills.paths.push(skillsDir);
-      }
-
-      // Commands registration (if supported by OpenCode version)
-      if (config.commands?.paths) {
-        if (fs.existsSync(commandsDir) && !config.commands.paths.includes(commandsDir)) {
-          config.commands.paths.push(commandsDir);
-        }
       }
     },
 

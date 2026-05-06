@@ -242,6 +242,13 @@ Example transform:
   - "sub-agent" → "sub-task" (if using OpenCode terminology)
   - `.claude/` paths → `.opencode/`
   - Tool references stay as-is (the skill system handles mapping)
+- For **scripts** (`.sh` files), update `PLUGIN_DIR` or path calculations to match the new output structure:
+  - Original: `plugins/{name}/scripts/` → Ported: `.opencode/{name}/scripts/`
+  - Use `$(cd "$(dirname "$0")/../../.." && pwd)` **only if** you are certain the output structure has 3 levels above scripts
+  - **Better:** Use `$(pwd)` as default (user runs tests from project root), or `$(dirname "$0")/../..` which works for both:
+    - Local: `.opencode/{name}/scripts/` → `.opencode/`
+    - Global: `~/.config/opencode/{name}/scripts/` → `~/.config/opencode/`
+  - Never hardcode `../../..` — the relative depth changes between local and global installation
 - Add attribution footer:
   ```
   ---
@@ -376,19 +383,12 @@ export const {Name}Plugin = async ({ client, directory, worktree }) => {
   const commandsDir = path.resolve(__dirname, '../commands');
 
   return {
-    // 1. Register skill and command directories in config
+    // 1. Register skill directory in config
     config: async (config) => {
       config.skills = config.skills || {};
       config.skills.paths = config.skills.paths || [];
       if (!config.skills.paths.includes(skillsDir)) {
         config.skills.paths.push(skillsDir);
-      }
-      
-      // Register commands directory if opencode supports it
-      if (config.commands?.paths) {
-        if (!config.commands.paths.includes(commandsDir)) {
-          config.commands.paths.push(commandsDir);
-        }
       }
     },
 
@@ -437,7 +437,7 @@ export const {Name}Plugin = async ({ client, directory, worktree }) => {
 {output_dir}/
 ├── .opencode/
 │   ├── plugins/
-│   │   └── {name}.js          ← Native OpenCode JS plugin
+│   │   └── {name}.js          ← Native OpenCode JS plugin (session mgmt + skill injection)
 │   ├── skills/
 │   │   ├── {skill1}/
 │   │   │   └── SKILL.md
@@ -448,13 +448,15 @@ export const {Name}Plugin = async ({ client, directory, worktree }) => {
 │   │   ├── status.md
 │   │   └── evolve.md
 │   └── hooks/
-│       └── hooks.yaml          ← Auto-capture (if source has hooks)
+│       └── hooks.yaml          ← Observation capture ONLY (message.part.updated, tool.after.*)
 ├── agent/
 │   └── observer.md             ← Only if source had agents/
 └── scripts/
     ├── observe.sh              ← Adapted for OpenCode payload
     └── on_stop.sh              ← Adapted for .opencode/ paths
 ```
+
+**Important:** When generating a native JS plugin, the `hooks.yaml` contains **only** observation capture hooks (`message.part.updated`, `tool.after.*`). Session lifecycle (`session.created`, `session.deleted`) is handled by the JS plugin itself — do NOT duplicate in hooks.yaml.
 
 **Registration:** After generating, instruct the user to add to `opencode.json`:
 ```json
