@@ -1,8 +1,6 @@
 # Task Plan — opencode-hooks: UserPromptSubmit Support
 
-> **Completed.** This plan resulted in the `@gabrielassisxyz/opencode-hooks` npm package.
-> The original fork approach evolved into a published package that extends `opencode-yaml-hooks`.
-> See: https://github.com/gabrielassisxyz/opencode-hooks
+> **Completed.** This plan resulted in the `@gabrielassisxyz/opencode-hooks` npm package. The original fork approach evolved into a published package that extends `opencode-yaml-hooks`. See: https://github.com/gabrielassisxyz/opencode-hooks
 
 ## Context
 
@@ -215,6 +213,4 @@ This approach:
 
 ---
 
-*Created: 2026-05-05*
-*Updated: 2026-05-05*
-*Status: Phase 1 complete, Phase 2 ready for implementation*
+*Created: 2026-05-05* *Updated: 2026-05-05* *Status: Phase 1 complete, Phase 2 ready for implementation*

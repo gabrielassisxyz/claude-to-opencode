@@ -9,8 +9,7 @@ description: >
 
 Port Claude Code artifacts to OpenCode format automatically.
 
-This command invokes the `porter` skill. For full documentation, see
-`skills/porter/SKILL.md`.
+This command invokes the `porter` skill. For full documentation, see `skills/porter/SKILL.md`.
 
 ## Usage
 
@@ -39,20 +38,16 @@ This command invokes the `porter` skill. For full documentation, see
 
 ## Hooks Support
 
-If the source skill uses Claude Code lifecycle hooks (`UserPromptSubmit`, `PostToolUse`,
-`Stop`), the porter can generate a `hooks.yaml` configuration using the `@gabrielassisxyz/opencode-hooks`
-plugin.
+If the source skill uses Claude Code lifecycle hooks (`UserPromptSubmit`, `PostToolUse`, `Stop`), the porter can generate a `hooks.yaml` configuration using the `@gabrielassisxyz/opencode-hooks` plugin.
 
-**Package:** `@gabrielassisxyz/opencode-hooks`
-**Repository:** https://github.com/gabrielassisxyz/opencode-hooks
+**Package:** `@gabrielassisxyz/opencode-hooks` **Repository:** https://github.com/gabrielassisxyz/opencode-hooks
 
 Install:
 ```bash
 bun add @gabrielassisxyz/opencode-hooks
 ```
 
-Without the plugin, the porter falls back to embedding manual logging instructions
-in the skill body.
+Without the plugin, the porter falls back to embedding manual logging instructions in the skill body.
 
 ## Decision Points
 

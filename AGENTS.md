@@ -1,7 +1,6 @@
 # AGENTS.md — Claude-to-OpenCode Porter
 
-> **Context for AI agents and human contributors.**
-> This file provides everything needed to understand, use, test, and modify this project.
+> **Context for AI agents and human contributors.** This file provides everything needed to understand, use, test, and modify this project.
 
 ---
 
@@ -9,8 +8,7 @@
 
 A skill and tooling to automatically port Claude Code artifacts (skills, agents, commands) to the OpenCode format.
 
-**Repository:** https://github.com/YOUR_USERNAME/claude-to-opencode
-**License:** MIT
+**Repository:** https://github.com/YOUR_USERNAME/claude-to-opencode **License:** MIT
 
 ### Core Problem
 
