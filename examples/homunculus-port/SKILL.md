@@ -81,8 +81,7 @@ You're locked in. I'll stay quiet.
 
 ## Session Lifecycle (Automatic via Hooks)
 
-Observations are captured automatically by the `@gabrielassisxyz/opencode-hooks` plugin.
-No manual logging is needed.
+Observations are captured automatically by the `@gabrielassisxyz/opencode-hooks` plugin. No manual logging is needed.
 
 ### At Session Start
 
@@ -116,8 +115,7 @@ fi
 
 ### Observation Protocol
 
-Observations are captured automatically by the `@gabrielassisxyz/opencode-hooks` plugin.
-No manual logging is needed.
+Observations are captured automatically by the `@gabrielassisxyz/opencode-hooks` plugin. No manual logging is needed.
 
 What gets captured:
 
@@ -348,5 +346,4 @@ I'll be watching. Learning. Growing.
 
 > Ported from `homunculus` plugin by porter skill on 2026-05-05.
 >
-> **Note:** OpenCode now has automatic lifecycle hooks via the `@gabrielassisxyz/opencode-hooks` plugin.
-> Observation capture and session tracking happen automatically.
+> **Note:** OpenCode now has automatic lifecycle hooks via the `@gabrielassisxyz/opencode-hooks` plugin. Observation capture and session tracking happen automatically.

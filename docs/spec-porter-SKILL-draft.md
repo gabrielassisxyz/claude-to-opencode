@@ -133,36 +133,17 @@ Apply these defaults based on tool flags:
 
 Read-only tools (always allow):
 ```yaml
-read: allow
-grep: allow
-glob: allow
+read: allow grep: allow glob: allow
 ```
 
 Modification tools (ask by default):
 ```yaml
-edit: ask
-write: ask
+edit: ask write: ask
 ```
 
 Bash (pattern-based):
 ```yaml
-bash:
-  "git diff*": allow
-  "git log*": allow
-  "git status": allow
-  "git branch*": allow
-  "ls*": allow
-  "find*": allow
-  "grep*": allow
-  "cat*": allow
-  "head*": allow
-  "tail*": allow
-  "wc*": allow
-  "rm -rf*": deny
-  "rm -r*": deny
-  "git push --force*": deny
-  "git reset --hard*": deny
-  "*": ask
+bash: "git diff*": allow "git log*": allow "git status": allow "git branch*": allow "ls*": allow "find*": allow "grep*": allow "cat*": allow "head*": allow "tail*": allow "wc*": allow "rm -rf*": deny "rm -r*": deny "git push --force*": deny "git reset --hard*": deny "*": ask
 ```
 
 If the source body contains specific bash commands (e.g., `npm test`, `go build`),
@@ -195,16 +176,12 @@ Write files to the target directory. Structure depends on target format chosen i
 
 **Power Pack format:**
 ```
-{output_dir}/
-├── skills/{name}/SKILL.md
-└── commands/{name}.md
+{output_dir}/ ├── skills/{name}/SKILL.md └── commands/{name}.md
 ```
 
 **Native Agent format:**
 ```
-{output_dir}/
-├── agent/{name}.md
-└── command/{name}.md
+{output_dir}/ ├── agent/{name}.md └── command/{name}.md
 ```
 
 ### Step 5: Generate Report
@@ -248,10 +225,7 @@ For ALL other cases, proceed autonomously and report decisions in the final repo
 **Input** (`.claude/skills/code-review/SKILL.md`):
 ```yaml
 ---
-name: code-review
-description: Review code changes for quality
-tools: Read, Grep, Bash
-model: sonnet
+name: code-review description: Review code changes for quality tools: Read, Grep, Bash model: sonnet
 ---
 
 Review the current branch's changes...
@@ -260,12 +234,7 @@ Review the current branch's changes...
 **Output** (Power Pack: `skills/code-review/SKILL.md`):
 ```yaml
 ---
-name: code-review
-description: >
-  Review code changes for quality, correctness, security issues, and adherence
-  to project conventions. Invoke when user asks to review code, check a PR,
-  audit changes, or assess code quality before merge.
-license: MIT (ported from .claude/skills/code-review)
+name: code-review description: > Review code changes for quality, correctness, security issues, and adherence to project conventions. Invoke when user asks to review code, check a PR, audit changes, or assess code quality before merge. license: MIT (ported from .claude/skills/code-review)
 ---
 
 Review the current branch's changes...
@@ -277,24 +246,7 @@ Review the current branch's changes...
 **Output** (Native Agent: `agent/code-review.md`):
 ```yaml
 ---
-description: >
-  Review code changes for quality, correctness, security issues, and adherence
-  to project conventions.
-mode: all
-model: anthropic/claude-sonnet-4-6
-temperature: 0.1
-tools:
-  read: true
-  edit: false
-  write: false
-  bash: true
-  grep: true
-  glob: true
-permissions:
-  read: allow
-  grep: allow
-  glob: allow
-  bash:
+description: > Review code changes for quality, correctness, security issues, and adherence to project conventions. mode: all model: anthropic/claude-sonnet-4-6 temperature: 0.1 tools: read: true edit: false write: false bash: true grep: true glob: true permissions: read: allow grep: allow glob: allow bash:
     "git diff*": allow
     "git log*": allow
     "git status": allow
@@ -428,24 +380,12 @@ exit $ERRORS
 
 ## Read-Only Agent
 ```yaml
-permissions:
-  read: allow
-  grep: allow
-  glob: allow
-  edit: deny
-  write: deny
-  bash: deny
+permissions: read: allow grep: allow glob: allow edit: deny write: deny bash: deny
 ```
 
 ## Standard Dev Agent
 ```yaml
-permissions:
-  read: allow
-  grep: allow
-  glob: allow
-  edit: ask
-  write: ask
-  bash:
+permissions: read: allow grep: allow glob: allow edit: ask write: ask bash:
     "git diff*": allow
     "git log*": allow
     "git status": allow
@@ -468,13 +408,7 @@ permissions:
 
 ## Security Reviewer (Strict)
 ```yaml
-permissions:
-  read: allow
-  grep: allow
-  glob: allow
-  edit: deny
-  write: deny
-  bash:
+permissions: read: allow grep: allow glob: allow edit: deny write: deny bash:
     "git diff*": allow
     "git log*": allow
     "git status": allow
@@ -485,12 +419,6 @@ permissions:
 
 ## Creative/Documentation Agent
 ```yaml
-permissions:
-  read: allow
-  grep: allow
-  glob: allow
-  edit: ask
-  write: ask
-  bash: deny
+permissions: read: allow grep: allow glob: allow edit: ask write: ask bash: deny
 ```
 ```
